@@ -168,7 +168,9 @@ $downInstances | ForEach-Object {
     }
 
     if (!$retrySucceeded) {
-        Write-Log "Sending Webhook to Home Assistant about $($instance.Name) being down after retries."
+        Write-Log "Alert settings for $($instance.Name): Webhook=$($instance.SendWebhook), Ntfy=$($instance.SendNtfy), Gotify=$($instance.SendGotify)"
+	    
+		Write-Log "Sending Alert about $($instance.Name) being down or offline."
 
         # Webhook
         if ($instance.SendWebhook -and -not [string]::IsNullOrWhiteSpace($homeAssistantIP)) {
