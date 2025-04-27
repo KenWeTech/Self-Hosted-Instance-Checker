@@ -6,26 +6,30 @@
 
 $logToFile     = $false    # Set to $true to turn on logs  
 $maxLogFiles   = 10  # Maximum number of log files to keep in the script directory
-$shortcutPath  = "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"
+$shortcutPath  = "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"  # Default is your startup folder
 
-# Alerting endpoints
-$homeAssistantIP = "10.0.0.2"  # Enter the IP address for Home Assistant
-$ntfyTopicURL  = "https://ntfy.sh/selfhosted-alerts"
-$gotifyURL     = "http://gotify.yourdomain.com/message"
-$gotifyToken   = "your_gotify_token"
+# Gobal Endpoints for Alerts
+$enableWebhookAlerts = $true   # Home Assistant - Set to $false to turn off
+$enableNtfyAlerts    = $false  # Ntfy - Set to $true to turn on
+$enableGotifyAlerts  = $false  # Gotify - Set to $true to turn on
+
+$homeAssistantIP = "10.0.0.2"  # Enter the IP address for Home Assistant for webhook use
+$ntfyTopicURL    = "https://ntfy.sh/selfhosted-alerts" # Ntfy topic URL
+$gotifyURL       = "http://gotify.yourdomain.com/message" # Gotify URL
+$gotifyToken     = "your_gotify_token" # Gotify token
 
 # Define your apps here
 $instances = @(
-    @{ Name = 'Readarr';   IP = '10.0.0.10'; Port = 8787; Shortcut = 'Readarr.lnk';   WebhookId = 'readarr_instance_down';   CheckProcess = $false; CheckPort = $true;  RetryCount = 2; SendWebhook = $true; SendNtfy = $true;  SendGotify = $false }
-    @{ Name = 'Sonarr';    IP = '10.0.0.10'; Port = 8987; Shortcut = 'Sonarr.lnk';    WebhookId = 'sonarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 3; SendWebhook = $true; SendNtfy = $false; SendGotify = $true  }
-    @{ Name = 'Radarr';    IP = '10.0.0.10'; Port = 7878; Shortcut = 'Radarr.lnk';    WebhookId = 'radarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 0; SendWebhook = $true; SendNtfy = $true;  SendGotify = $true  }
-    @{ Name = 'Kavita';    IP = '10.0.0.10'; Port = 5005; Shortcut = 'Kavita.lnk';    WebhookId = 'kavita_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 3; SendWebhook = $true; SendNtfy = $false; SendGotify = $false }
-    @{ Name = 'Ombi';      IP = '10.0.0.10'; Port = 5000; Shortcut = 'Ombi.lnk';      WebhookId = 'ombi_instance_down';      CheckProcess = $true;  CheckPort = $true;  RetryCount = 2; SendWebhook = $true; SendNtfy = $true;  SendGotify = $false }
-    @{ Name = 'Lidarr';    IP = '10.0.0.10'; Port = 8686; Shortcut = 'Lidarr.lnk';    WebhookId = 'lidarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 1; SendWebhook = $true; SendNtfy = $false; SendGotify = $true  }
-    @{ Name = 'Prowlarr';  IP = '10.0.0.10'; Port = 6969; Shortcut = 'Prowlarr.lnk';  WebhookId = 'prowlarr_instance_down';  CheckProcess = $true;  CheckPort = $false; RetryCount = 0; SendWebhook = $true; SendNtfy = $false; SendGotify = $false }
-    @{ Name = 'NZBGet';    IP = '10.0.0.10'; Port = 6789; Shortcut = 'NZBGet.lnk';    WebhookId = 'nzbget_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 2; SendWebhook = $true; SendNtfy = $true;  SendGotify = $false }
-    @{ Name = 'Suwayomi';  IP = '10.0.0.10'; Port = 4567; Shortcut = 'Suwayomi.lnk';  WebhookId = 'suwayomi_instance_down';  CheckProcess = $true;  CheckPort = $true;  RetryCount = 2; SendWebhook = $true; SendNtfy = $true;  SendGotify = $true  }
-    @{ Name = 'Speakarr';  IP = '10.0.0.10'; Port = 8777; Shortcut = 'Speakarr.lnk';  WebhookId = 'speakarr_instance_down';  CheckProcess = $false; CheckPort = $true;  RetryCount = 1; SendWebhook = $true; SendNtfy = $false; SendGotify = $false }
+    @{ Name = 'Readarr';   IP = '10.0.0.10'; Port = 8787; Shortcut = 'Readarr.lnk';   WebhookId = 'readarr_instance_down';   CheckProcess = $false; CheckPort = $true;  RetryCount = 2 }
+    @{ Name = 'Sonarr';    IP = '10.0.0.10'; Port = 8987; Shortcut = 'Sonarr.lnk';    WebhookId = 'sonarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 3 }
+    @{ Name = 'Radarr';    IP = '10.0.0.10'; Port = 7878; Shortcut = 'Radarr.lnk';    WebhookId = 'radarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 0 }
+    @{ Name = 'Kavita';    IP = '10.0.0.10'; Port = 5005; Shortcut = 'Kavita.lnk';    WebhookId = 'kavita_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 3 }
+    @{ Name = 'Ombi';      IP = '10.0.0.10'; Port = 5000; Shortcut = 'Ombi.lnk';      WebhookId = 'ombi_instance_down';      CheckProcess = $true;  CheckPort = $true;  RetryCount = 2 }
+    @{ Name = 'Lidarr';    IP = '10.0.0.10'; Port = 8686; Shortcut = 'Lidarr.lnk';    WebhookId = 'lidarr_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 1 }
+    @{ Name = 'Prowlarr';  IP = '10.0.0.10'; Port = 6969; Shortcut = 'Prowlarr.lnk';  WebhookId = 'prowlarr_instance_down';  CheckProcess = $true;  CheckPort = $false; RetryCount = 0 }
+    @{ Name = 'NZBGet';    IP = '10.0.0.10'; Port = 6789; Shortcut = 'NZBGet.lnk';    WebhookId = 'nzbget_instance_down';    CheckProcess = $true;  CheckPort = $true;  RetryCount = 2 }
+    @{ Name = 'Suwayomi';  IP = '10.0.0.10'; Port = 4567; Shortcut = 'Suwayomi.lnk';  WebhookId = 'suwayomi_instance_down';  CheckProcess = $true;  CheckPort = $true;  RetryCount = 2 }
+    @{ Name = 'Speakarr';  IP = '10.0.0.10'; Port = 8777; Shortcut = 'Speakarr.lnk';  WebhookId = 'speakarr_instance_down';  CheckProcess = $false; CheckPort = $true;  RetryCount = 1 }
 ) | ForEach-Object {
     [pscustomobject]@{
         Name         = $_.Name
@@ -36,9 +40,9 @@ $instances = @(
         CheckProcess = $_.CheckProcess
         CheckPort    = $_.CheckPort
         RetryCount   = $_.RetryCount
-        SendWebhook  = $_.SendWebhook
-        SendNtfy     = $_.SendNtfy
-        SendGotify   = $_.SendGotify
+        SendWebhook  = if ($_.ContainsKey('SendWebhook')) { $_.SendWebhook } else { $enableWebhookAlerts }
+        SendNtfy     = if ($_.ContainsKey('SendNtfy'))     { $_.SendNtfy }     else { $enableNtfyAlerts }
+        SendGotify   = if ($_.ContainsKey('SendGotify'))   { $_.SendGotify }   else { $enableGotifyAlerts }
     }
 }
 
@@ -68,6 +72,7 @@ function Write-Log {
 
 Write-Log "START ====================="
 
+$downInstances = @()
 $instances | ForEach-Object {
     $processCheck = $null
     $portCheck = $false
@@ -102,10 +107,14 @@ $instances | ForEach-Object {
         }
     }
 
-    if ($processStatus -eq $false -and $portStatus -eq $false) {
-        Write-Log "$($_.Name) is down."
-        $downInstances += $_
-    }
+    if (
+		($_.CheckProcess -and -not $processStatus) -and
+		($_.CheckPort -and -not $portStatus)
+	) {
+		Write-Log "$($_.Name) is down."
+		$downInstances += $_
+	}
+
 }
 
 $downInstances | ForEach-Object {
@@ -197,4 +206,4 @@ $downInstances | ForEach-Object {
 }
 
 Write-Log 'END ====================='
-Start-Sleep -Seconds 45
+Start-Sleep -Seconds 45  # Keeps the window open for 45 seconds before closing
