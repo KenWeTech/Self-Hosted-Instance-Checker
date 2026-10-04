@@ -1,6 +1,13 @@
-# ================================
+# ==============================================================================
 # SELF-HOSTED INSTANCE CHECKER
-# ================================
+# ==============================================================================
+# Version     : 2.5.0
+# Author      : KenWeTech
+# Repository  : https://github.com/KenWeTech/Self-Hosted-Instance-Checker
+# Description : Monitors local and remote self-hosted services via process checks
+#               and TCP ports. Triggers local shortcut restarts and sends alert
+#               notifications via Home Assistant Webhooks, Ntfy, and Gotify.
+# ==============================================================================
 
 # --- USER SETTINGS (EDIT THIS SECTION) ---
 
@@ -8,15 +15,26 @@ $logToFile     = $false    # Set to $true to turn on logs
 $maxLogFiles   = 10  # Maximum number of log files to keep in the script directory
 $shortcutPath  = "$env:USERPROFILE\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Startup"  # Default is your startup folder
 
-# Gobal Endpoints for Alerts
+# Global Endpoints for Alerts
 $enableWebhookAlerts = $true   # Home Assistant - Set to $false to turn off
 $enableNtfyAlerts    = $false  # Ntfy - Set to $true to turn on
 $enableGotifyAlerts  = $false  # Gotify - Set to $true to turn on
 
+$alertTitle          = "SelfHosted Alert" # Default title for push notifications
+
+# HA Settings
 $homeAssistantIP = "10.0.0.2"  # Enter the IP address for Home Assistant for webhook use
+
+# Ntfy Settings
 $ntfyTopicURL    = "https://ntfy.sh/selfhosted-alerts" # Ntfy topic URL
+$ntfyToken       = "" # Optional: Enter Ntfy token if your server requires authentication
+$ntfyPriority    = "urgent" # Ntfy priority (e.g., max, urgent, high, default, low, min)
+$ntfyTags        = "warning,rotating_light" # Ntfy tags/emojis
+
+# Gotify Settings
 $gotifyURL       = "http://gotify.yourdomain.com/message" # Gotify URL
 $gotifyToken     = "your_gotify_token" # Gotify token
+$gotifyPriority  = 5 # Gotify priority level
 
 # Define your apps here
 $instances = @(
@@ -186,8 +204,18 @@ $downInstances | ForEach-Object {
 
         # ntfy
         if ($instance.SendNtfy -and -not [string]::IsNullOrWhiteSpace($ntfyTopicURL)) {
+            $ntfyHeaders = @{
+                'Title'    = $alertTitle
+                'Priority' = $ntfyPriority
+                'Tags'     = $ntfyTags
+            }
+            
+            if (-not [string]::IsNullOrWhiteSpace($ntfyToken)) {
+                $ntfyHeaders['Authorization'] = "Bearer $ntfyToken"
+            }
+
             try {
-                Invoke-RestMethod -Uri $ntfyTopicURL -Method POST -Body "$($instance.Name) is down after checks." -ContentType "text/plain"
+                Invoke-RestMethod -Uri $ntfyTopicURL -Method POST -Headers $ntfyHeaders -Body "$($instance.Name) is down after checks." -ContentType "text/plain"
                 Write-Log "ntfy alert sent."
             } catch {
                 Write-Log "[ERROR] Failed to send ntfy alert: $_"
@@ -196,9 +224,19 @@ $downInstances | ForEach-Object {
 
         # Gotify
         if ($instance.SendGotify -and -not [string]::IsNullOrWhiteSpace($gotifyURL)) {
-            $gotifyPayload = @{ title = "SelfHosted Alert"; message = "$($instance.Name) is down after checks."; priority = 5 }
+            $gotifyPayload = @{ 
+                title    = $alertTitle
+                message  = "$($instance.Name) is down after checks."
+                priority = $gotifyPriority 
+            }
+
+            $gotifyHeaders = @{
+                'Authorization' = "Bearer $gotifyToken"
+                'X-Gotify-Key'  = $gotifyToken 
+            }
+
             try {
-                Invoke-RestMethod -Uri $gotifyURL -Headers @{ 'X-Gotify-Key' = $gotifyToken } -Method POST -Body ($gotifyPayload | ConvertTo-Json -Depth 2) -ContentType "application/json"
+                Invoke-RestMethod -Uri $gotifyURL -Headers $gotifyHeaders -Method POST -Body ($gotifyPayload | ConvertTo-Json -Depth 2) -ContentType "application/json"
                 Write-Log "Gotify alert sent."
             } catch {
                 Write-Log "[ERROR] Failed to send Gotify alert: $_"
