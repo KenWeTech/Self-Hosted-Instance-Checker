@@ -189,6 +189,3 @@ Sends a POST request to `$gotifyURL` formatted with JSON body and Bearer token h
 
 This project is licensed under the [MIT License](https://opensource.org/licenses/MIT).
 
-```
-
-```
